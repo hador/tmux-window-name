@@ -144,6 +144,14 @@ def parse_shell_command(shell_cmd: List[bytes]) -> Optional[str]:
     shell_cmd_str[1] = Path(shell_cmd_str[1]).name
     return ' '.join(shell_cmd_str[1:])
 
+
+def parse_command(cmd: List[bytes]) -> Optional[str]:
+    cmd_str = [x.decode() for x in cmd]
+    # Get base filename
+    cmd_str[0] = Path(cmd_str[0]).name
+    return ' '.join(cmd_str)
+
+
 def get_current_program(running_programs: List[bytes], pane: TmuxPane, options: Options) -> Optional[str]:
     if pane.pane_pid is None:
         raise ValueError(f'Pane id is none, pane: {pane}')
@@ -154,7 +162,7 @@ def get_current_program(running_programs: List[bytes], pane: TmuxPane, options: 
         # if pid matches parse program
         if int(program[0]) == int(pane.pane_pid):
             program = program[1:]
-            program_name = program[0].decode()
+            program_name = Path(program[0].decode()).name
 
             if len(program) > 1 and "scripts/rename_session_windows.py" in program[1].decode():
                 continue
@@ -166,7 +174,7 @@ def get_current_program(running_programs: List[bytes], pane: TmuxPane, options: 
             if program_name in options.shells:
                 return parse_shell_command(program)
 
-            return b' '.join(program).decode()
+            return parse_command(program)
 
     return None
 
